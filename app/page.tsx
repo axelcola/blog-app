@@ -1,4 +1,4 @@
-import PostsPage from "./posts/page";
+import PostsPage from "./Home/Home";
 
 export default function Home() {
   return (
