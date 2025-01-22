@@ -13,7 +13,6 @@ export default function UserSearcherComponent({
   const { users, isLoading } = useUsers();
 
   if (isLoading) return <div>Loading users...</div>;
- console.log(users)
   return (
     <div className="mb-6">
       <select

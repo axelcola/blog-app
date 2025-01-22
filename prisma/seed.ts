@@ -33,7 +33,6 @@ async function main() {
       })
     }
 
-    console.log('Seeding completed successfully')
   } catch (error) {
     console.error('Error seeding data:', error)
     process.exit(1)

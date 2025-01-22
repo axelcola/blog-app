@@ -1,6 +1,5 @@
 "use client";
 import { usePosts } from "@/hooks/usePosts";
-import { queueService } from "@/services/queueService";
 import { useState, useEffect } from "react";
 import UserSearcerComponent from "./components/UserSearcher";
 import Cards from "./components/Cards";
@@ -32,14 +31,6 @@ export default function Home() {
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-
-    const checkPendingActions = async () => {
-      const queue = await queueService.getQueue();
-      if (queue.length > 0 && navigator.onLine) {
-        processOfflineActions();
-      }
-    };
-    checkPendingActions();
 
     return () => {
       window.removeEventListener("online", handleOnline);
