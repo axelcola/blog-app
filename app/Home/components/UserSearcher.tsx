@@ -1,4 +1,4 @@
-import { usePosts } from "@/hooks/usePosts";
+import { useUsers } from "@/hooks/useUsers";
 import React, { ChangeEvent } from "react";
 
 interface UserSearcherComponentTypes {
@@ -6,11 +6,14 @@ interface UserSearcherComponentTypes {
   handleUserChange: (event: ChangeEvent<HTMLSelectElement>) => void;
 }
 
-export default function UserSearcerComponent({
+export default function UserSearcherComponent({
   selectedUserId,
   handleUserChange,
 }: UserSearcherComponentTypes) {
-  const { posts } = usePosts();
+  const { users, isLoading } = useUsers();
+
+  if (isLoading) return <div>Loading users...</div>;
+ console.log(users)
   return (
     <div className="mb-6">
       <select
@@ -19,14 +22,11 @@ export default function UserSearcerComponent({
         className="w-full md:w-auto px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring"
       >
         <option value="">All Users</option>
-        {posts &&
-          Array.from(new Set(posts.map((post) => post.userId))).map(
-            (userId) => (
-              <option key={userId} value={userId.toString()}>
-                User {userId}
-              </option>
-            )
-          )}
+        {users?.map((user) => (
+          <option key={user.id} value={user.id.toString()}>
+            {`Id: ${user.id} ${user.name} `}
+          </option>
+        ))}
       </select>
     </div>
   );
