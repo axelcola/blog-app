@@ -20,7 +20,7 @@ export default function Cards({
             <h2 className="text-xl font-bold mb-2">{post.title}</h2>
             <p className="text-gray-600 mb-4">{post.body}</p>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">By {post.user.name}</span>
+              <span className="text-sm text-gray-500">By {post.user?.name || 'Loading...'}</span>
               <button
                 onClick={() => {
                   setPostToDelete(post.id);

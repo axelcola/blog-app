@@ -1,6 +1,10 @@
 import useSWR, { mutate } from "swr";
 import { Post, User } from "@prisma/client";
-import { queueService, QueuedAction, QueueError } from "../services/queueService";
+import {
+  queueService,
+  QueuedAction,
+  QueueError,
+} from "../services/queueService";
 import { useCallback } from "react";
 
 const fetcher = async (url: string) => {
@@ -12,6 +16,8 @@ const fetcher = async (url: string) => {
 export type PostWithUser = Post & {
   user: User;
 };
+
+export type CreatePost = Omit<Post, "id" | "createdAt" | "updatedAt">
 
 export function usePosts() {
   const {
@@ -50,6 +56,60 @@ export function usePosts() {
     [posts]
   );
 
+  const createPost = useCallback(
+    async (postData: { title: string; body: string; userId: number }) => {
+      try {
+        const response = await fetch("/api/posts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(postData),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to create post");
+        }
+
+        const newPost = await response.json();
+
+        mutate(
+          "/api/posts",
+          (oldPosts: CreatePost[] | undefined) => {
+            if (!oldPosts) return [newPost];
+            return [...oldPosts, newPost];
+          },
+          false
+        );
+
+        return newPost;
+      } catch {
+        await queueService.addToQueue({
+          type: "CREATE",
+          payload: { postData },
+        });
+
+        const tempPost: CreatePost = {
+          title: postData.title,
+          body: postData.body,
+          userId: postData.userId,
+        };
+
+        mutate(
+          "/api/posts",
+          (oldPosts: CreatePost[] | undefined) => {
+            if (!oldPosts) return [tempPost];
+            return [...oldPosts, tempPost];
+          },
+          false
+        );
+
+        return tempPost;
+      }
+    },
+    []
+  );
+
   const processOfflineActions = useCallback(async () => {
     await queueService.processQueue(async (action: QueuedAction) => {
       switch (action.type) {
@@ -65,9 +125,38 @@ export function usePosts() {
               throw new Error(`${response.status}`);
             }
           } catch (error: unknown) {
-            const queueError: QueueError = { 
-              status: error instanceof Error ? parseInt(error.message) || 500 : 500,
-              message: error instanceof Error ? error.message : 'Unknown error'
+            const queueError: QueueError = {
+              status:
+                error instanceof Error ? parseInt(error.message) || 500 : 500,
+              message: error instanceof Error ? error.message : "Unknown error",
+            };
+            throw queueError;
+          }
+          break;
+
+        case "CREATE":
+          try {
+            if (!action.payload.postData) {
+              throw new Error("Missing post data");
+            }
+
+            const response = await fetch("/api/posts", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(action.payload.postData),
+            });
+
+            if (!response.ok) {
+              throw new Error(`${response.status}`);
+            }
+          } catch (error: unknown) {
+            debugger
+            const queueError: QueueError = {
+              status:
+                error instanceof Error ? parseInt(error.message) || 500 : 500,
+              message: error instanceof Error ? error.message : "Unknown error",
             };
             throw queueError;
           }
@@ -84,5 +173,6 @@ export function usePosts() {
     isLoading,
     deletePost,
     processOfflineActions,
+    createPost
   };
 }

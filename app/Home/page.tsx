@@ -4,11 +4,20 @@ import { useState, useEffect } from "react";
 import UserSearcerComponent from "./components/UserSearcher";
 import Cards from "./components/Cards";
 import ConfirmtionDialog from "./components/ConfirmtionDialog";
+import { CreatePostModal } from "./components/CreatePostModal";
+import CreatePostButton from "./components/CreatePostButton";
 
 export default function Home() {
-  const { posts, error, isLoading, deletePost, processOfflineActions } =
-    usePosts();
+  const {
+    posts,
+    error,
+    isLoading,
+    deletePost,
+    processOfflineActions,
+    createPost,
+  } = usePosts();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<number | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [offlineMessage, setOfflineMessage] = useState<string | null>(null);
@@ -42,6 +51,14 @@ export default function Home() {
     setSelectedUserId(event.target.value);
   };
 
+  const handleOnSubmit = (formData: {
+    title: string;
+    body: string;
+    userId: number;
+  }) => {
+    createPost(formData);
+  };
+
   const handleDeleteConfirm = async () => {
     if (postToDelete) {
       await deletePost(postToDelete);
@@ -63,10 +80,15 @@ export default function Home() {
       </div>
     );
   }
+  const onCloseModal = () => {
+    setIsCreateModalOpen(false);
+  };
+  const openCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
-
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error.message}
@@ -90,6 +112,13 @@ export default function Home() {
           handleDeleteConfirm={handleDeleteConfirm}
         />
       )}
+      <CreatePostModal
+        isOpen={isCreateModalOpen}
+        onClose={onCloseModal}
+        onSubmit={handleOnSubmit}
+      />
+
+      <CreatePostButton openModal={openCreateModal} />
 
       {showNotification && (
         <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg">
