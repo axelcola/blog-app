@@ -7,9 +7,14 @@ export type QueueError = {
 
 export type QueuedAction = {
   id: string;
-  type: "DELETE";
+  type: "DELETE" | "CREATE";
   payload: {
-    postId: number;
+    postId?: number;
+    postData?: {
+      title: string;
+      body: string;
+      userId: number;
+    };
   };
   timestamp: number;
 };
@@ -46,9 +51,11 @@ export const queueService = {
       try {
         await callback(action);
         await this.removeFromQueue(action.id);
-      } catch (error: unknown) {
+      } catch (error) {
         const queueError = error as QueueError;
-        console.log(`Failed to process action ${action.id}:`, queueError);
+        if (queueError.status === 404) {
+          await this.removeFromQueue(action.id);
+        }
       }
     }
   },
