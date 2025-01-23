@@ -14,5 +14,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/profile/:path*"], // Rutas protegidas
+  matcher: ["/Home", "/"], 
 };
