@@ -42,23 +42,46 @@ export function usePosts() {
           oldPosts.filter((post) => post.id !== postId),
           false
         );
-
+   
         const response = await fetch(`/api/posts/${postId}`, {
           method: "DELETE",
         });
-
+   
         if (!response.ok) {
-          throw new Error("Failed to delete post");
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-      } catch {
+   
+        return {
+          success: true,
+          message: "Post deleted successfully"
+        };
+   
+      } catch (error) {
+        if (!navigator.onLine) {
+          await queueService.addToQueue({
+            type: "DELETE",
+            payload: { postId },
+          });
+          return {
+            success: false,
+            message: "Offline - Post will be deleted when connection is restored",
+            isOffline: true
+          };
+        }
+   
         await queueService.addToQueue({
           type: "DELETE",
           payload: { postId },
         });
+        return {
+          success: false,
+          message: error instanceof Error ? error.message : "Failed to delete post",
+          isOffline: false
+        };
       }
     },
     [posts]
-  );
+   );
 
   const createPost = useCallback(
     async (postData: {
