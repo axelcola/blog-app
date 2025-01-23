@@ -1,4 +1,5 @@
 import { get, set, del } from "idb-keyval";
+import { uuid } from "uuidv4";
 
 export type QueueError = {
   status: number;
@@ -26,7 +27,7 @@ export const queueService = {
     const queue = await this.getQueue();
     const newAction: QueuedAction = {
       ...action,
-      id: Math.random().toString(36).substring(7),
+      id: uuid(),
       timestamp: Date.now(),
     };
     await set(QUEUE_KEY, [...queue, newAction]);

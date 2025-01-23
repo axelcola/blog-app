@@ -9,10 +9,17 @@ interface ApiError extends Error {
   message: string;
 }
 
+interface ValidationErrors {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  name?: string;
+}
+
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<ValidationErrors>({});
 
   const [loginCredentials, setLoginCredentials] = useState({
     email: "",
@@ -26,10 +33,77 @@ export default function AuthPage() {
     confirmPassword: "",
   });
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string): boolean => {
+    return password.length >= 6;
+  };
+
+  const validateLoginForm = (): boolean => {
+    const newErrors: ValidationErrors = {};
+    let isValid = true;
+
+    if (!loginCredentials.email) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!validateEmail(loginCredentials.email)) {
+      newErrors.email = "The email format is not valid";
+      isValid = false;
+    }
+    
+    if (!loginCredentials.password) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const validateRegisterForm = (): boolean => {
+    const newErrors: ValidationErrors = {};
+    let isValid = true;
+
+    if (!registerData.name || registerData.name.trim().length < 2) {
+      newErrors.name = "Name must be at least 2 characters long";
+      isValid = false;
+    }
+
+    if (!registerData.email) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!validateEmail(registerData.email)) {
+      newErrors.email = "The email format is not valid";
+      isValid = false;
+    }
+
+    if (!registerData.password) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    } else if (!validatePassword(registerData.password)) {
+      newErrors.password = "Password must be at least 6 characters long";
+      isValid = false;
+    }
+
+    if (registerData.password !== registerData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateLoginForm()) return;
+
     setIsLoading(true);
-    setError("");
+    setErrors({});
+    
     try {
       const result = await signIn("credentials", {
         email: loginCredentials.email,
@@ -38,7 +112,9 @@ export default function AuthPage() {
       });
 
       if (result?.error) {
-        setError("Credenciales inválidas");
+        setErrors({
+          password: "Email or password is incorrect"
+        });
         return;
       }
 
@@ -46,8 +122,10 @@ export default function AuthPage() {
         window.location.href = "/posts";
       }
     } catch (error) {
-      setError("Ocurrió un error al iniciar sesión");
-      console.error("Error en login:", error);
+      setErrors({
+        password: "Connection error. Please try again later"
+      });
+      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -55,14 +133,11 @@ export default function AuthPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
+    if (!validateRegisterForm()) return;
 
-    if (registerData.password !== registerData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      setIsLoading(false);
-      return;
-    }
+    setIsLoading(true);
+    setErrors({});
+
     try {
       const response = await fetch("/api/users", {
         method: "POST",
@@ -79,8 +154,13 @@ export default function AuthPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al crear usuario");
+        if (response.status === 409) {
+          setErrors({ email: "This email is already registered" });
+          return;
+        }
+        throw new Error(data.error || "Error creating user");
       }
+
       const result = await signIn("credentials", {
         email: registerData.email,
         password: registerData.password,
@@ -93,13 +173,28 @@ export default function AuthPage() {
     } catch (error: unknown) {
       if (error instanceof Error) {
         const apiError = error as ApiError;
-        setError(apiError.message || "Error al registrar usuario");
+        setErrors({
+          password: apiError.message || "Error registering user. Please try again later"
+        });
       } else {
-        setError("Error al registrar usuario");
+        setErrors({
+          password: "Connection error. Please try again later"
+        });
       }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const renderFieldError = (fieldName: keyof ValidationErrors) => {
+    if (errors[fieldName]) {
+      return (
+        <p className="mt-1 text-sm text-red-600">
+          {errors[fieldName]}
+        </p>
+      );
+    }
+    return null;
   };
 
   return (
@@ -115,10 +210,10 @@ export default function AuthPage() {
             }`}
             onClick={() => {
               setActiveTab("login");
-              setError("");
+              setErrors({});
             }}
           >
-            Iniciar sesión
+            Sign In
           </button>
           <button
             className={`flex-1 py-2 px-4 text-center ${
@@ -128,35 +223,12 @@ export default function AuthPage() {
             }`}
             onClick={() => {
               setActiveTab("register");
-              setError("");
+              setErrors({});
             }}
           >
-            Registrarse
+            Sign Up
           </button>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {activeTab === "login" ? (
           <form onSubmit={handleLogin} className="mt-8 space-y-6">
@@ -179,17 +251,20 @@ export default function AuthPage() {
                       email: e.target.value,
                     })
                   }
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="usuario@ejemplo.com"
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.email ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="user@example.com"
                   disabled={isLoading}
                 />
+                {renderFieldError('email')}
               </div>
               <div>
                 <label
                   htmlFor="login-password"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Contraseña
+                  Password
                 </label>
                 <input
                   id="login-password"
@@ -202,9 +277,12 @@ export default function AuthPage() {
                       password: e.target.value,
                     })
                   }
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.password ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   disabled={isLoading}
                 />
+                {renderFieldError('password')}
               </div>
             </div>
 
@@ -214,7 +292,7 @@ export default function AuthPage() {
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+              {isLoading ? "Signing in..." : "Sign In"}
             </button>
           </form>
         ) : (
@@ -225,7 +303,7 @@ export default function AuthPage() {
                   htmlFor="register-name"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Nombre
+                  Name
                 </label>
                 <input
                   id="register-name"
@@ -235,10 +313,13 @@ export default function AuthPage() {
                   onChange={(e) =>
                     setRegisterData({ ...registerData, name: e.target.value })
                   }
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Tu nombre"
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.name ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Your name"
                   disabled={isLoading}
                 />
+                {renderFieldError('name')}
               </div>
               <div>
                 <label
@@ -255,17 +336,20 @@ export default function AuthPage() {
                   onChange={(e) =>
                     setRegisterData({ ...registerData, email: e.target.value })
                   }
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="usuario@ejemplo.com"
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.email ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="user@example.com"
                   disabled={isLoading}
                 />
+                {renderFieldError('email')}
               </div>
               <div>
                 <label
                   htmlFor="register-password"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Contraseña
+                  Password
                 </label>
                 <input
                   id="register-password"
@@ -278,16 +362,19 @@ export default function AuthPage() {
                       password: e.target.value,
                     })
                   }
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.password ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   disabled={isLoading}
                 />
+                {renderFieldError('password')}
               </div>
               <div>
                 <label
                   htmlFor="register-confirm-password"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Confirmar Contraseña
+                  Confirm Password
                 </label>
                 <input
                   id="register-confirm-password"
@@ -300,9 +387,12 @@ export default function AuthPage() {
                       confirmPassword: e.target.value,
                     })
                   }
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   disabled={isLoading}
                 />
+                {renderFieldError('confirmPassword')}
               </div>
             </div>
 
@@ -312,7 +402,7 @@ export default function AuthPage() {
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? "Registrando..." : "Registrarse"}
+              {isLoading ? "Signing up..." : "Sign Up"}
             </button>
           </form>
         )}

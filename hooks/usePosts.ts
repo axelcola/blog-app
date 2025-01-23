@@ -1,11 +1,11 @@
 import useSWR, { mutate } from "swr";
-import { Post, User } from "@prisma/client";
 import {
   queueService,
   QueuedAction,
   QueueError,
 } from "../services/queueService";
 import { useCallback } from "react";
+import { CreatePost, PostWithUser } from "@/app/types/types";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -13,16 +13,7 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-export type PostWithUser = Post & {
-  user: User;
-};
 
-export type CreatePost = {
-  title: string;
-  body: string;
-  userId: number;
-  user: { name: string | null | undefined };
-};
 export function usePosts() {
   const {
     data: posts,

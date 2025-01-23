@@ -90,7 +90,6 @@ export default function Home() {
     if (postToDelete) {
       try {
         const res = await deletePost(postToDelete);
-        console.log(res);
         setToast({
           show: true,
           message: res.message,
