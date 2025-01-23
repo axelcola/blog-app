@@ -1,12 +1,13 @@
 "use client";
 import { usePosts } from "@/hooks/usePosts";
 import { useState, useEffect } from "react";
-import UserSearcerComponent from "./components/UserSearcher";
+import UserSearcherComponent from "./components/UserSearcher";
 import Cards from "./components/Cards";
 import ConfirmtionDialog from "./components/ConfirmtionDialog";
 import { CreatePostModal } from "./components/CreatePostModal";
 import CreatePostButton from "./components/CreatePostButton";
 import { NewPostTypes } from "./types/types";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
   const {
@@ -23,7 +24,9 @@ export default function Home() {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [offlineMessage, setOfflineMessage] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState(false);
-
+  
+  const { data: session } = useSession();
+  
   useEffect(() => {
     const handleOnline = () => {
       processOfflineActions();
@@ -92,10 +95,11 @@ export default function Home() {
         </div>
       )}
 
-      <UserSearcerComponent
-        selectedUserId={selectedUserId}
-        handleUserChange={handleUserChange}
-      />
+      <UserSearcherComponent
+          selectedUserId={selectedUserId}
+          handleUserChange={handleUserChange}
+        />
+
 
       <Cards
         filteredPosts={filteredPosts}
@@ -113,6 +117,7 @@ export default function Home() {
         isOpen={isCreateModalOpen}
         onClose={onCloseModal}
         onSubmit={handleOnSubmit}
+        user={session?.user}
       />
 
       <CreatePostButton openModal={openCreateModal} />

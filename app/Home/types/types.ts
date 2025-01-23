@@ -21,8 +21,16 @@ export interface NewPostTypes {
   userId: number;
 }
 
+interface CardUserType {
+  id: string ;
+  name?: string | null; 
+  email?: string | null;
+  image?: string | null;
+ }
+
 export interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (post: NewPostTypes) => void;
-}
+  user: CardUserType | undefined;
+ }
