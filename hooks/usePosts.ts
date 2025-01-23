@@ -17,8 +17,12 @@ export type PostWithUser = Post & {
   user: User;
 };
 
-export type CreatePost = Omit<Post, "id" | "createdAt" | "updatedAt">
-
+export type CreatePost = {
+  title: string;
+  body: string;
+  userId: number;
+  user: { name: string | null | undefined };
+};
 export function usePosts() {
   const {
     data: posts,
@@ -57,7 +61,12 @@ export function usePosts() {
   );
 
   const createPost = useCallback(
-    async (postData: { title: string; body: string; userId: number }) => {
+    async (postData: {
+      title: string;
+      body: string;
+      userId: number;
+      user: { name: string | null | undefined };
+    }) => {
       try {
         const response = await fetch("/api/posts", {
           method: "POST",
@@ -71,7 +80,9 @@ export function usePosts() {
           throw new Error("Failed to create post");
         }
 
-        const newPost = await response.json();
+        const result = await response.json();
+        const { user } = postData;
+        const newPost = { ...result, user };
 
         mutate(
           "/api/posts",
@@ -93,6 +104,7 @@ export function usePosts() {
           title: postData.title,
           body: postData.body,
           userId: postData.userId,
+          user: { name: postData.user.name },
         };
 
         mutate(
@@ -172,6 +184,6 @@ export function usePosts() {
     isLoading,
     deletePost,
     processOfflineActions,
-    createPost
+    createPost,
   };
 }

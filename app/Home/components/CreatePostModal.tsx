@@ -9,7 +9,7 @@ export function CreatePostModal({
   onSubmit,
   user,
 }: CreatePostModalProps) {
-  const [formData, setFormData] = useState<Omit<NewPostTypes, "id" | "userId">>({
+  const [formData, setFormData] = useState<Omit<NewPostTypes, "id" | "userId" | "user">>({
     title: "",
     body: "",
   });
@@ -19,7 +19,8 @@ export function CreatePostModal({
   const handleSubmit = () => {
     const newPost = {
       ...formData,
-      userId: parseInt(user.id)
+      userId: parseInt(user.id),
+      user: { name: user.name }
     };
     onSubmit(newPost);
     setFormData({ title: "", body: "" });

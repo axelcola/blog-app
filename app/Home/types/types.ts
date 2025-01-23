@@ -19,18 +19,19 @@ export interface NewPostTypes {
   title: string;
   body: string;
   userId: number;
+  user: { name: string | null | undefined} 
 }
 
 interface CardUserType {
-  id: string ;
-  name?: string | null; 
+  id: string;
+  name?: string | null;
   email?: string | null;
   image?: string | null;
- }
+}
 
 export interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (post: NewPostTypes) => void;
   user: CardUserType | undefined;
- }
+}

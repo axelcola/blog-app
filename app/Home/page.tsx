@@ -1,6 +1,7 @@
 "use client";
 import { usePosts } from "@/hooks/usePosts";
 import { useState, useEffect } from "react";
+import { CheckCircle2, XCircle } from 'lucide-react';
 import UserSearcherComponent from "./components/UserSearcher";
 import Cards from "./components/Cards";
 import ConfirmtionDialog from "./components/ConfirmtionDialog";
@@ -24,6 +25,7 @@ export default function Home() {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [offlineMessage, setOfflineMessage] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', isError: false });
   
   const { data: session } = useSession();
   
@@ -55,10 +57,20 @@ export default function Home() {
     setSelectedUserId(event.target.value);
   };
 
-  const handleOnSubmit = (formData: NewPostTypes) => {
-    createPost(formData);
+  const handleOnSubmit = async (formData: NewPostTypes) => {
+    try {
+      await createPost(formData);
+      setToast({ show: true, message: 'Post created successfully', isError: false });
+      setTimeout(() => setToast({ show: false, message: '', isError: false }), 3000);
+    } catch {
+      setToast({ 
+        show: true, 
+        message: 'Error creating post', 
+        isError: true 
+      });
+      setTimeout(() => setToast({ show: false, message: '', isError: false }), 3000);
+    }
   };
-
   const handleDeleteConfirm = async () => {
     if (postToDelete) {
       await deletePost(postToDelete);
@@ -125,6 +137,18 @@ export default function Home() {
       {showNotification && (
         <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg">
           {offlineMessage}
+        </div>
+      )}
+       {toast.show && (
+        <div className={`fixed bottom-4 right-4 flex items-center space-x-2 px-6 py-3 rounded-lg shadow-lg ${
+          toast.isError ? 'bg-red-600' : 'bg-green-600'
+        } text-white`}>
+          {toast.isError ? (
+            <XCircle className="h-5 w-5" />
+          ) : (
+            <CheckCircle2 className="h-5 w-5" />
+          )}
+          <span>{toast.message}</span>
         </div>
       )}
     </div>
