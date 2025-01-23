@@ -1,8 +1,5 @@
+import type { CreatePostButtonProps } from "../types/types";
 import EditIcon from "./icons/EditIcon";
-
-interface CreatePostButtonProps {
-    openModal: () => void;
-}
 
 const CreatePostButton: React.FC<CreatePostButtonProps> = ({ 
   openModal = () => {}, 

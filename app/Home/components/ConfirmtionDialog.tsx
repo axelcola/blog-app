@@ -1,9 +1,6 @@
 import React from "react";
+import type { ConfirmtionDialog } from "../types/types";
 
-interface ConfirmtionDialog {
-  setIsDeleteDialogOpen: (isOpen: boolean) => void;
-  handleDeleteConfirm: () => void;
-}
 
 export default function ConfirmtionDialog({
   setIsDeleteDialogOpen,

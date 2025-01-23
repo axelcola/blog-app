@@ -1,11 +1,7 @@
-import { PostWithUser } from "@/hooks/usePosts";
 import React from "react";
+import type { UserSearcherComponentTypes } from "../types/types";
 
-interface UserSearcherComponentTypes {
-  filteredPosts: PostWithUser[];
-  setPostToDelete: (id: number) => void;
-  setIsDeleteDialogOpen: (isOpen: boolean) => void;
-}
+
 
 export default function Cards({
   filteredPosts,

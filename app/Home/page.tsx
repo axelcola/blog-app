@@ -6,6 +6,7 @@ import Cards from "./components/Cards";
 import ConfirmtionDialog from "./components/ConfirmtionDialog";
 import { CreatePostModal } from "./components/CreatePostModal";
 import CreatePostButton from "./components/CreatePostButton";
+import { NewPostTypes } from "./types/types";
 
 export default function Home() {
   const {
@@ -51,11 +52,7 @@ export default function Home() {
     setSelectedUserId(event.target.value);
   };
 
-  const handleOnSubmit = (formData: {
-    title: string;
-    body: string;
-    userId: number;
-  }) => {
+  const handleOnSubmit = (formData: NewPostTypes) => {
     createPost(formData);
   };
 
