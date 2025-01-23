@@ -17,12 +17,6 @@ The application features offline support through action queueing:
 - Automatically syncs when connection is restored
 - Provides real-time status updates
 
-## Prerequisites
-
-- Node.js (14.x or higher)
-- npm
-- PostgreSQL database
-
 ## Installation
 
 1. Clone the repository
