@@ -31,7 +31,6 @@ export default function AuthPage() {
     setIsLoading(true);
     setError("");
     try {
-      debugger;
       const result = await signIn("credentials", {
         email: loginCredentials.email,
         password: loginCredentials.password,
@@ -47,7 +46,6 @@ export default function AuthPage() {
         window.location.href = "/Home";
       }
     } catch (error) {
-      debugger
       setError("Ocurrió un error al iniciar sesión");
       console.error("Error en login:", error);
     } finally {
@@ -83,7 +81,6 @@ export default function AuthPage() {
       if (!response.ok) {
         throw new Error(data.error || "Error al crear usuario");
       }
-      debugger;
       const result = await signIn("credentials", {
         email: registerData.email,
         password: registerData.password,

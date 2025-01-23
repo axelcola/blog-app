@@ -152,7 +152,6 @@ export function usePosts() {
               throw new Error(`${response.status}`);
             }
           } catch (error: unknown) {
-            debugger
             const queueError: QueueError = {
               status:
                 error instanceof Error ? parseInt(error.message) || 500 : 500,
