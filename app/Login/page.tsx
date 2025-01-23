@@ -43,7 +43,7 @@ export default function AuthPage() {
       }
 
       if (result?.ok) {
-        window.location.href = "/Home";
+        window.location.href = "/posts";
       }
     } catch (error) {
       setError("Ocurrió un error al iniciar sesión");
@@ -88,7 +88,7 @@ export default function AuthPage() {
       });
 
       if (result?.ok) {
-        window.location.href = "/Home";
+        window.location.href = "/posts";
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
