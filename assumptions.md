@@ -9,6 +9,7 @@
   - SWR for data fetching
   - idb-keyval for offline data storage
   - uuid for unique action identification in offline mode
+  - For time reasons, I have decided not to add tests.
 
 # Business Assumptions
 
