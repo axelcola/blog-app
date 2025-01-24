@@ -22,7 +22,7 @@ export default function Home() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<number | null>(null);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [offlineMessage, setOfflineMessage] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState(false);
   const [toast, setToast] = useState({
@@ -56,10 +56,6 @@ export default function Home() {
       window.removeEventListener("offline", handleOffline);
     };
   }, [processOfflineActions]);
-
-  const handleUserChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedUserId(event.target.value);
-  };
 
   const handleOnSubmit = async (formData: NewPostTypes) => {
     try {
@@ -114,13 +110,13 @@ export default function Home() {
       }
     }
   };
-
+  
   const filteredPosts = posts
-    ? selectedUserId
-      ? posts.filter((post) => post.userId === parseInt(selectedUserId))
-      : posts
-    : [];
-
+  ? selectedUsers.length > 0
+  ? posts.filter((post) => selectedUsers.includes(post.userId))
+  : posts
+  : [];
+  
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -144,8 +140,7 @@ export default function Home() {
       )}
 
       <UserSearcherComponent
-        selectedUserId={selectedUserId}
-        handleUserChange={handleUserChange}
+        handleUserChange={setSelectedUsers}
       />
 
       <Cards
