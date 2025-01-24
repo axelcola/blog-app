@@ -44,8 +44,7 @@ The application will be available at `http://localhost:3000`
 
 To create a new user account:
 
-1. Navigate to the signup page
-2. Fill in the required fields:
+1. Fill in the required fields:
    - Username
    - Email (e.g., email@mail.com)
    - Any password
